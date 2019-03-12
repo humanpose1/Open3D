@@ -94,6 +94,9 @@ void pybind_pointcloud_methods(py::module &m) {
           "Function to downsample input pointcloud into output pointcloud with "
           "a voxel",
           "input"_a, "voxel_size"_a);
+    m.def("pointcloud_2_image", &geometry::PointCloud2Image,
+	  "Function to transform a point cloud into an image",
+	  "input"_a, "image_width"_a, "image_height"_a);
     m.def("voxel_down_sample_and_trace", &geometry::VoxelDownSampleAndTrace,
           "Function to downsample using geometry::VoxelDownSample also records "
           "point "

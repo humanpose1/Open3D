@@ -24,6 +24,7 @@
 // IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#include "Image.h"
 #include "PointCloud.h"
 #include "TriangleMesh.h"
 
@@ -284,6 +285,61 @@ std::shared_ptr<PointCloud> VoxelDownSample(const PointCloud &input,
     utility::PrintDebug(
             "Pointcloud down sampled from %d points to %d points.\n",
             (int)input.points_.size(), (int)output->points_.size());
+    return output;
+}
+
+    std::shared_ptr<Image> PointCloud2Image(const PointCloud &input,
+					int image_width, int image_height) {
+    auto output = std::make_shared<Image>();
+    bool has_normals = input.HasNormals();
+    if(has_normals){
+	output->PrepareImage(image_width, image_height, 6, 4);
+    }
+    else{
+	output->PrepareImage(image_width, image_height, 3, 4);
+    }
+    for(int i=0; i<output->width_;i++){
+	for(int j=0; j<output->height_; j++){
+	    for(int c=0; c<output->num_of_channels_; c++){
+		*PointerAt<float>(*output, i, j, c) = 0.0f;
+	    }
+	}
+    }
+    Eigen::Vector2d image_size2 = Eigen::Vector2d(image_width, image_height);
+    Eigen::Vector2d min_input;
+    min_input << input.GetMinBound()(0), input.GetMinBound()(1);
+    Eigen::Vector2d max_input;
+    max_input << input.GetMaxBound()(0), input.GetMaxBound()(1);
+    Eigen::Vector2d range = max_input - min_input;
+    std::unordered_map<Eigen::Vector2i, AccumulatedPoint,
+		       utility::hash_eigen::hash<Eigen::Vector2i>>
+	pixel_index_to_accpoint;
+    Eigen::Vector2d ref_coord;
+    Eigen::Vector2i pixel_index;
+    for(int i = 0; i < (int)input.points_.size(); i++) {
+	ref_coord << input.points_[i](0), input.points_[i](1);
+	ref_coord =  ref_coord - min_input;
+	ref_coord = ((ref_coord.array()/range.array())*image_size2.array()).matrix();
+	pixel_index << int(floor(ref_coord(0))), int(floor(ref_coord(1)));
+	pixel_index_to_accpoint[pixel_index].AddPoint(input, i);
+    }
+    Eigen::Vector2i pixel;
+    Eigen::Vector3d point;
+    Eigen::Vector3d normal;
+    
+    for (auto accpoint : pixel_index_to_accpoint){
+	pixel = accpoint.first;
+	point = accpoint.second.GetAveragePoint();
+	for(int i=0; i<3;i++){
+	    *PointerAt<float>(*output, pixel(0), pixel(1), i) = float(point(i));
+	}
+	if(has_normals) {
+	    normal = accpoint.second.GetAverageNormal();
+	    for(int i = 0; i < 3; i++) {
+		*PointerAt<float>(*output, pixel(0), pixel(1), i) = float(normal(i));
+	    }
+	}
+    }
     return output;
 }
 

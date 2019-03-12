@@ -126,7 +126,12 @@ std::shared_ptr<PointCloud> SelectDownSample(const PointCloud &input,
 /// they exist.
 std::shared_ptr<PointCloud> VoxelDownSample(const PointCloud &input,
                                             double voxel_size);
-
+    
+// Function to project the point cloud into the plane define by z=0
+// image_width and image_height are the size of the image output
+std::shared_ptr<Image> PointCloud2Image(const PointCloud &input,
+					int image_width, int image_height);
+    
 /// Function to downsample using VoxelDownSample, but specialized for
 /// Surface convolution project. Experimental function.
 std::tuple<std::shared_ptr<PointCloud>, Eigen::MatrixXi>

@@ -25,44 +25,27 @@
 // ----------------------------------------------------------------------------
 
 #pragma once
-
 #include <vector>
 #include <memory>
 #include <Eigen/Core>
 #include <Open3D/Geometry/KDTreeSearchParam.h>
 
 namespace open3d {
+    namespace geometry {
+	class PointCloud;
+    } // end geometry
+    namespace registration {
+	class Feature;
+	
+	// Function to detect interest Point(saliency map) using the eigenvalues
+	// of the covariance matrix
+	
+	std::shared_ptr<Feature> SaliencyByCovariance(
+	    const geometry::PointCloud &input,
+	    const geometry::KDTreeSearchParam &search_param_cov,
+	    const geometry::KDTreeSearchParam &search_param_NMS,
+	    double gamma_01, double gamma_12);
 
-namespace geometry {
-class PointCloud;
-}
-
-namespace registration {
-
-class Feature {
-public:
-    void Resize(int dim, int n) {
-        data_.resize(dim, n);
-        data_.setZero();
-    }
-    size_t Dimension() const { return data_.rows(); }
-    size_t Num() const { return data_.cols(); }
-
-public:
-    Eigen::MatrixXd data_;
-};
-
-/// Function to compute FPFH feature for a point cloud
-    std::shared_ptr<Feature> ComputeFPFHFeature(
-	const geometry::PointCloud &input,
-	const geometry::KDTreeSearchParam &search_param =
-	geometry::KDTreeSearchParamKNN());
-    
-    std::shared_ptr<Feature> ComputeFPFHFeatureOnPoints(
-	const geometry::PointCloud &query,
-	const geometry::PointCloud &input,
-	const geometry::KDTreeSearchParam &search_param =
-	geometry::KDTreeSearchParamKNN());
-
-}  // namespace registration
-}  // namespace open3d
+	
+    }// end registration
+} // end open3d

@@ -71,6 +71,7 @@ Eigen::Vector4d ComputePairFeatures(const Eigen::Vector3d &p1,
 }
 
 std::shared_ptr<Feature> ComputeSPFHFeature(
+        const std::vector<int> &indices,
         const geometry::PointCloud &input,
         const geometry::KDTreeFlann &kdtree,
         const geometry::KDTreeSearchParam &search_param) {
@@ -79,37 +80,38 @@ std::shared_ptr<Feature> ComputeSPFHFeature(
 #ifdef _OPENMP
 #pragma omp parallel for schedule(static)
 #endif
-    for (int i = 0; i < (int)input.points_.size(); i++) {
-        const auto &point = input.points_[i];
-        const auto &normal = input.normals_[i];
-        std::vector<int> indices;
+    // Modification of the Original. We compute the SPFH only on specific indices.
+    for (int i = 0; i < (int)indices.size(); i++) {
+        const auto &point = input.points_[indices[i]];
+        const auto &normal = input.normals_[indices[i]];
+        std::vector<int> neighbors;
         std::vector<double> distance2;
-        if (kdtree.Search(point, search_param, indices, distance2) > 1) {
+        if (kdtree.Search(point, search_param, neighbors, distance2) > 1) {
             // only compute SPFH feature when a point has neighbors
-            double hist_incr = 100.0 / (double)(indices.size() - 1);
-            for (size_t k = 1; k < indices.size(); k++) {
+            double hist_incr = 100.0 / (double)(neighbors.size() - 1);
+            for (size_t k = 1; k < neighbors.size(); k++) {
                 // skip the point itself, compute histogram
                 auto pf = ComputePairFeatures(point, normal,
-                                              input.points_[indices[k]],
-                                              input.normals_[indices[k]]);
+                                              input.points_[neighbors[k]],
+                                              input.normals_[neighbors[k]]);
                 int h_index = (int)(floor(11 * (pf(0) + M_PI) / (2.0 * M_PI)));
                 if (h_index < 0) h_index = 0;
                 if (h_index >= 11) h_index = 10;
-                feature->data_(h_index, i) += hist_incr;
+                feature->data_(h_index, indices[i]) += hist_incr;
                 h_index = (int)(floor(11 * (pf(1) + 1.0) * 0.5));
                 if (h_index < 0) h_index = 0;
                 if (h_index >= 11) h_index = 10;
-                feature->data_(h_index + 11, i) += hist_incr;
+                feature->data_(h_index + 11, indices[i]) += hist_incr;
                 h_index = (int)(floor(11 * (pf(2) + 1.0) * 0.5));
                 if (h_index < 0) h_index = 0;
                 if (h_index >= 11) h_index = 10;
-                feature->data_(h_index + 22, i) += hist_incr;
+                feature->data_(h_index + 22, indices[i]) += hist_incr;
             }
         }
     }
     return feature;
 }
-
+   
 }  // unnamed namespace
 
 namespace registration {
@@ -126,7 +128,11 @@ std::shared_ptr<Feature> ComputeFPFHFeature(
         return feature;
     }
     geometry::KDTreeFlann kdtree(input);
-    auto spfh = ComputeSPFHFeature(input, kdtree, search_param);
+    std::vector<int> query_indices;
+    for(int i = 0; i < (int)input.points_.size(); i++)
+	query_indices.push_back(i);
+    
+    auto spfh = ComputeSPFHFeature(query_indices, input, kdtree, search_param);
 #ifdef _OPENMP
 #pragma omp parallel for schedule(static)
 #endif
@@ -161,6 +167,69 @@ std::shared_ptr<Feature> ComputeFPFHFeature(
     }
     return feature;
 }
+    std::shared_ptr<Feature> ComputeFPFHFeatureOnPoints(
+	const geometry::PointCloud &query,
+	const geometry::PointCloud &input,
+	const geometry::KDTreeSearchParam &search_param) {
+	// Same as ComputeFPFHFeature but only compute the fpfh feature on query point
+	auto feature =std::make_shared<Feature>();
+	feature->Resize(33, (int)query.points_.size());
+	if (input.HasNormals() == false) {
+	    utility::PrintDebug(
+                "[ComputeFPFHFeature] Failed because input point cloud has no "
+                "normal.\n");
+	    return feature;
+        }
+	geometry::KDTreeFlann kdtree(input);
+	// TODO : Optimize later this part (create a local point cloud)
+	std::vector<int> query_indices;
+	for (int i = 0; i < (int)query.points_.size(); i++){
+	    const auto &point = query.points_[i];
+	    std::vector<int> indices;
+	    std::vector<double> distance2;
+	    kdtree.Search(point, search_param, indices, distance2);
+		
+	    query_indices.insert(query_indices.end(),
+				 indices.begin(),
+				 indices.end());
+	}
+	// for(int i = 0; i < (int)input.points_.size(); i++)
+	//     query_indices.push_back(i);
+	
+	std::sort(query_indices.begin(), query_indices.end());
+	query_indices.erase(std::unique(query_indices.begin(),
+					query_indices.end()), query_indices.end());
+	auto spfh = ComputeSPFHFeature(query_indices, input, kdtree, search_param);
+#ifdef _OPENMP
+#pragma omp parallel for schedule(static)
+#endif
+	for (int i = 0; i < (int)query.points_.size(); i++) {
+	    const auto &point = query.points_[i];
+	    std::vector<int> indices;
+	    std::vector<double> distance2;
+	    if (kdtree.Search(point, search_param, indices, distance2) > 1) {
+		double sum[3] = {0.0, 0.0, 0.0};
+		for (size_t k = 1; k < indices.size(); k++) {
+		    // skip the point itself
+		    double dist = distance2[k];
+		    if (dist == 0.0) continue;
+		    for (int j = 0; j < 33; j++) {
+			double val = spfh->data_(j, indices[k]) / dist;
+			sum[j / 11] += val;
+			feature->data_(j, i) += val;
+		    }
+		}
+		for (int j = 0; j < 3; j++)
+		    if (sum[j] != 0.0) sum[j] = 100.0 / sum[j];
+		for (int j = 0; j < 33; j++) {
+		    feature->data_(j, i) *= sum[j / 11];
+		 
+		    feature->data_(j, i) += spfh->data_(j, i);
+		}
+	    }
+	}
+	return feature;
+    }
 
 }  // namespace registration
 }  // namespace open3d

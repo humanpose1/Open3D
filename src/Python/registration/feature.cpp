@@ -28,7 +28,7 @@
 
 #include <Open3D/Geometry/PointCloud.h>
 #include <Open3D/Registration/Feature.h>
-
+#include <Open3D/Registration/Detector.h>
 using namespace open3d;
 
 void pybind_feature(py::module &m) {
@@ -54,4 +54,12 @@ void pybind_feature_methods(py::module &m) {
     m.def("compute_fpfh_feature", &registration::ComputeFPFHFeature,
           "Function to compute FPFH feature for a point cloud", "input"_a,
           "search_param"_a);
+    m.def("compute_fpfh_feature_on_points", &registration::ComputeFPFHFeatureOnPoints,
+	  "Function to compute FPFH feature for a point cloud on specific points"
+	  "This is different from ComputeFPFHFeature who compute the features at every"
+	  "points", "query"_a, "input"_a, "search_param"_a);
+    m.def("saliency_by_covariance", &registration::SaliencyByCovariance,
+	  "Detector that detect interest keypoints using the eigenvalues of the covariance matrix",
+	  "input"_a, "search_param_cov"_a, "search_param_NMS"_a,
+	  "gamma_01"_a, "gamma_12"_a);
 }
