@@ -29,6 +29,7 @@
 #include <Eigen/Eigenvalues>
 #include <Open3D/Geometry/PointCloud.h>
 #include <Open3D/Geometry/KDTreeFlann.h>
+#include <iostream>
 
 namespace open3d {
     namespace {
@@ -109,6 +110,9 @@ namespace open3d {
 		 const geometry::PointCloud &input,
 		 const geometry::KDTreeFlann &kdtree,
 		 const geometry::KDTreeSearchParam &search_param) {
+#ifdef _OPENMP
+#pragma omp parallel for schedule(static)
+#endif
 	    for(int i = 0; i < indices_max.size(); i++){
 		std::vector<int> indices;
 		std::vector<double> distance2;
@@ -144,23 +148,34 @@ namespace open3d {
 #pragma omp parallel for schedule(static)
 #endif
 	    for(int i = 0; i < (int)input.points_.size(); i++) {
+		
 		const auto &point = input.points_[i];
 		std::vector<int> indices;
 		std::vector<double> distance2;
 		kdtree.Search(point, search_param_cov, indices, distance2);
 		Eigen::Matrix3d covariance = ComputeCovariance(input, indices);
 		Eigen::Vector3d eigenvalues = FastEigen3x3(covariance);
+		
 		if(eigenvalues(1)/eigenvalues(0) < gamma_01 and
 		   eigenvalues(2)/eigenvalues(1) < gamma_12) {
 		    saliency->data_(0, i) = eigenvalues(2);
-		    indices_max_saliency.push_back(i);
+		    
 		}
 		else {
 		    saliency->data_(0, i) = 0.0;
 		}
+		
 	    }
+	    
+	    for(int i = 0; i < (int)input.points_.size(); i++){
+		if(saliency->data_(0, i) > 0.0)
+		    indices_max_saliency.push_back(i);
+	    }
+	    
+	    std::cout << "compute saliency of" << std::endl;
 	    NMS(saliency, indices_max_saliency,
 	    input, kdtree, search_param_NMS);
+	    std::cout << "NMS" << std::endl;
 	    return saliency;
 	}
     }// namespace registration

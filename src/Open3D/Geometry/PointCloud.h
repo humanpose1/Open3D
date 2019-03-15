@@ -32,6 +32,7 @@
 #include <Eigen/Core>
 #include <Open3D/Geometry/Geometry3D.h>
 #include <Open3D/Geometry/KDTreeSearchParam.h>
+#include <Open3D/Registration/Feature.h>
 
 namespace open3d {
 
@@ -129,8 +130,8 @@ std::shared_ptr<PointCloud> VoxelDownSample(const PointCloud &input,
     
 // Function to project the point cloud into the plane define by z=0
 // image_width and image_height are the size of the image output
-std::shared_ptr<Image> PointCloud2Image(const PointCloud &input,
-					int image_width, int image_height);
+    std::shared_ptr<registration::Feature> PointCloud2Image(const PointCloud &input,
+							    int image_width, int image_height);
     
 /// Function to downsample using VoxelDownSample, but specialized for
 /// Surface convolution project. Experimental function.

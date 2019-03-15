@@ -24,7 +24,7 @@
 // IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-#include "Image.h"
+// #include "Image.h"
 #include "PointCloud.h"
 #include "TriangleMesh.h"
 
@@ -34,6 +34,7 @@
 #include <Open3D/Utility/Helper.h>
 #include <Open3D/Utility/Console.h>
 #include <Open3D/Geometry/KDTreeFlann.h>
+#include <Open3D/Registration/Feature.h>
 
 namespace open3d {
 
@@ -288,28 +289,25 @@ std::shared_ptr<PointCloud> VoxelDownSample(const PointCloud &input,
     return output;
 }
 
-    std::shared_ptr<Image> PointCloud2Image(const PointCloud &input,
+    std::shared_ptr<registration::Feature> PointCloud2Image(const PointCloud &input,
 					int image_width, int image_height) {
-    auto output = std::make_shared<Image>();
+    auto output = std::make_shared<registration::Feature>();
     bool has_normals = input.HasNormals();
     if(has_normals){
-	output->PrepareImage(image_width, image_height, 6, 4);
+	output->Resize(6, image_width*image_height);
     }
     else{
-	output->PrepareImage(image_width, image_height, 3, 4);
+	output->Resize(3, image_width*image_height);
     }
-    for(int i=0; i<output->width_;i++){
-	for(int j=0; j<output->height_; j++){
-	    for(int c=0; c<output->num_of_channels_; c++){
-		*PointerAt<float>(*output, i, j, c) = 0.0f;
-	    }
-	}
-    }
+    
     Eigen::Vector2d image_size2 = Eigen::Vector2d(image_width, image_height);
     Eigen::Vector2d min_input;
-    min_input << input.GetMinBound()(0), input.GetMinBound()(1);
+    double eps = 0.001*(input.GetMaxBound()(0)-input.GetMinBound()(0) +
+			   input.GetMaxBound()(1)-input.GetMinBound()(1));
+    min_input << input.GetMinBound()(0)-eps, input.GetMinBound()(1)-eps;
     Eigen::Vector2d max_input;
-    max_input << input.GetMaxBound()(0), input.GetMaxBound()(1);
+    max_input << input.GetMaxBound()(0)+eps, input.GetMaxBound()(1)+eps;
+    
     Eigen::Vector2d range = max_input - min_input;
     std::unordered_map<Eigen::Vector2i, AccumulatedPoint,
 		       utility::hash_eigen::hash<Eigen::Vector2i>>
@@ -331,12 +329,14 @@ std::shared_ptr<PointCloud> VoxelDownSample(const PointCloud &input,
 	pixel = accpoint.first;
 	point = accpoint.second.GetAveragePoint();
 	for(int i=0; i<3;i++){
-	    *PointerAt<float>(*output, pixel(0), pixel(1), i) = float(point(i));
+	    // *PointerAt<float>(*output, pixel(0), pixel(1), i) = float(point(i));
+	    output->data_(i, pixel[0] + image_width * pixel[1]) = point(i);
 	}
 	if(has_normals) {
 	    normal = accpoint.second.GetAverageNormal();
 	    for(int i = 0; i < 3; i++) {
-		*PointerAt<float>(*output, pixel(0), pixel(1), i) = float(normal(i));
+		//*PointerAt<float>(*output, pixel(0), pixel(1), 3 + i) = float(normal(i));
+		output->data_(3 + i, pixel[0] + image_width * pixel[1]) = normal(i);
 	    }
 	}
     }
