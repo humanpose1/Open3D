@@ -244,6 +244,7 @@ std::shared_ptr<TriangleMesh> SelectDownSample(
     return output;
 }
 
+
 std::shared_ptr<PointCloud> VoxelDownSample(const PointCloud &input,
                                             double voxel_size) {
     auto output = std::make_shared<PointCloud>();
@@ -288,6 +289,8 @@ std::shared_ptr<PointCloud> VoxelDownSample(const PointCloud &input,
             (int)input.points_.size(), (int)output->points_.size());
     return output;
 }
+
+    
 
     std::shared_ptr<registration::Feature> PointCloud2Image(const PointCloud &input,
 					int image_width, int image_height) {

@@ -178,5 +178,31 @@ namespace open3d {
 	    std::cout << "NMS" << std::endl;
 	    return saliency;
 	}
+
+	std::shared_ptr<Feature> EdgeDetector(
+	    const geometry::PointCloud &input,
+	    const geometry::KDTreeSearchParam &search_param_cov) {
+
+	    auto saliency = std::make_shared<Feature>();
+	    saliency->Resize(1, (int)input.points_.size());
+	    geometry::KDTreeFlann kdtree(input);
+#ifdef _OPENMP
+#pragma omp parallel for schedule(static)
+#endif
+	    for(int i = 0; i < (int)input.points_.size(); i++) {
+		
+		const auto &point = input.points_[i];
+		std::vector<int> indices;
+		std::vector<double> distance2;
+		kdtree.Search(point, search_param_cov, indices, distance2);
+		Eigen::Matrix3d covariance = ComputeCovariance(input, indices);
+		Eigen::Vector3d eigenvalues = FastEigen3x3(covariance);
+
+		
+		saliency->data_(0, i) =
+		    eigenvalues(2) / (eigenvalues(0) + eigenvalues(1) + eigenvalues(2));
+	    }
+	    return saliency;
+	}
     }// namespace registration
 } // namespace open3d

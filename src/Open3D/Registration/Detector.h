@@ -46,6 +46,11 @@ namespace open3d {
 	    const geometry::KDTreeSearchParam &search_param_NMS,
 	    double gamma_01, double gamma_12);
 
+	// Edge detector according to this article :
+	// Fast and Robust Edge Extraction in Unorganized Point Clouds
+	std::shared_ptr<Feature> EdgeDetector(
+	    const geometry::PointCloud &input,
+	    const geometry::KDTreeSearchParam &search_param_cov);
 	
     }// end registration
 } // end open3d

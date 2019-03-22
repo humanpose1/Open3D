@@ -62,4 +62,7 @@ void pybind_feature_methods(py::module &m) {
 	  "Detector that detect interest keypoints using the eigenvalues of the covariance matrix",
 	  "input"_a, "search_param_cov"_a, "search_param_NMS"_a,
 	  "gamma_01"_a, "gamma_12"_a);
+    m.def("edge_detector", &registration::EdgeDetector,
+	  "Compute high response of edge using the covariance matrix",
+	  "input"_a, "search_param_cov"_a);
 }
