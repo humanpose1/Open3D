@@ -101,7 +101,7 @@ Eigen::Matrix4d TransformationEstimationPointToPlane::ComputeTransformation(
     Eigen::Matrix4d extrinsic;
     std::tie(is_success, extrinsic) =
             utility::SolveJacobianSystemAndObtainExtrinsicMatrix(JTJ, JTr);
-
+    
     return is_success ? extrinsic : Eigen::Matrix4d::Identity();
 }
 

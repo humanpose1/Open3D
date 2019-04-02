@@ -141,6 +141,33 @@ void pybind_kdtreeflann(py::module &m) {
                      return std::make_tuple(k, indices, distance2);
                  },
                  "query"_a, "knn"_a)
+	.def("multi_search_knn_vector_3d",
+	     [](const geometry::KDTreeFlann &tree,
+		const std::vector<Eigen::Vector3d> &queries, int knn){
+		 
+		 std::vector<int> list_ind;
+		 std::vector<double> list_dist;
+			      
+		 for(int i=0; i<queries.size(); i++){
+		     Eigen::Vector3d query = queries[i];
+		     std::vector<int> indices;
+		     std::vector<double> distance2;
+		     int k = tree.SearchKNN(query, knn, indices, distance2);
+		     if (k < 0)
+                         throw std::runtime_error(
+                                 "search_knn_vector_3d() error!");
+		     
+		     list_ind.insert(list_ind.end(),
+				     indices.begin(),
+				     indices.end());
+		     list_dist.insert(list_dist.end(),
+				      distance2.begin(),
+				      distance2.end());
+		 }
+		 return std::make_tuple(list_ind, list_dist);
+		 
+	     },
+	     "queries"_a, "knn"_a)
             .def("search_radius_vector_3d",
                  [](const geometry::KDTreeFlann &tree,
                     const Eigen::Vector3d &query, double radius) {

@@ -107,6 +107,8 @@ int KDTreeFlann::Search(const T &query,
     return -1;
 }
 
+
+    
 template <typename T>
 int KDTreeFlann::SearchKNN(const T &query,
                            int knn,
