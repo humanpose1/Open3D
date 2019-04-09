@@ -60,7 +60,8 @@ public:
     void UpdateWindowTitle() override;
     void BuildUtilities() override;
     int PickPoint(double x, double y);
-    std::vector<size_t> &GetPickedPoints();
+    std::vector<Eigen::Vector3d> &GetPickedPoints();
+    std::vector<size_t> &GetPickedIndices();
 
 protected:
     bool InitViewControl() override;

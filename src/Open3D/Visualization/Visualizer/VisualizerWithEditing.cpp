@@ -250,7 +250,10 @@ int VisualizerWithEditing::PickPoint(double x, double y) {
     return index;
 }
 
-std::vector<size_t> &VisualizerWithEditing::GetPickedPoints() {
+    std::vector<Eigen::Vector3d> &VisualizerWithEditing::GetPickedPoints() {
+    return pointcloud_picker_ptr_->picked_points_;
+}
+    std::vector<size_t> &VisualizerWithEditing::GetPickedIndices() {
     return pointcloud_picker_ptr_->picked_indices_;
 }
 
@@ -614,17 +617,19 @@ void VisualizerWithEditing::MouseButtonCallback(GLFWwindow *window,
                         "Picked point #%d (%.2f, %.2f, %.2f) to add in "
                         "queue.\n",
                         index, point(0), point(1), point(2));
-                pointcloud_picker_ptr_->picked_indices_.push_back(
-                        (size_t)index);
+		Eigen::Vector3d pt(point(0), point(1), point(2));
+                pointcloud_picker_ptr_->picked_points_.push_back(pt);
+		pointcloud_picker_ptr_->picked_indices_.push_back(index);
                 is_redraw_required_ = true;
             }
         } else if (button == GLFW_MOUSE_BUTTON_RIGHT &&
                    action == GLFW_RELEASE && (mods & GLFW_MOD_SHIFT)) {
-            if (pointcloud_picker_ptr_->picked_indices_.empty() == false) {
+            if (pointcloud_picker_ptr_->picked_points_.empty() == false) {
                 utility::PrintInfo(
                         "Remove picked point #%d from pick queue.\n",
                         pointcloud_picker_ptr_->picked_indices_.back());
-                pointcloud_picker_ptr_->picked_indices_.pop_back();
+                pointcloud_picker_ptr_->picked_points_.pop_back();
+		pointcloud_picker_ptr_->picked_indices_.pop_back();
                 is_redraw_required_ = true;
             }
         }

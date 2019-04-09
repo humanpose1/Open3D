@@ -1,0 +1,11 @@
+#pragma once
+
+#include <Eigen/Core>
+#include <vector>
+
+namespace open3d {
+    namespace geometry {
+
+	std::vector<int> NormalSample()
+    }// end of geometry
+}//end of open3d

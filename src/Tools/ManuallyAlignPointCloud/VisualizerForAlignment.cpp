@@ -246,8 +246,8 @@ void VisualizerForAlignment::KeyPressCallback(
 }
 
 bool VisualizerForAlignment::SaveSessionToFile(const std::string &filename) {
-    alignment_session_.source_indices_ = source_visualizer_.GetPickedPoints();
-    alignment_session_.target_indices_ = target_visualizer_.GetPickedPoints();
+    alignment_session_.source_indices_ = source_visualizer_.GetPickedIndices();
+    alignment_session_.target_indices_ = target_visualizer_.GetPickedIndices();
     alignment_session_.voxel_size_ = voxel_size_;
     alignment_session_.max_correspondence_distance_ =
             max_correspondence_distance_;
@@ -260,8 +260,8 @@ bool VisualizerForAlignment::LoadSessionFromFile(const std::string &filename) {
     if (io::ReadIJsonConvertible(filename, alignment_session_) == false) {
         return false;
     }
-    source_visualizer_.GetPickedPoints() = alignment_session_.source_indices_;
-    target_visualizer_.GetPickedPoints() = alignment_session_.target_indices_;
+    source_visualizer_.GetPickedIndices() = alignment_session_.source_indices_;
+    target_visualizer_.GetPickedIndices() = alignment_session_.target_indices_;
     voxel_size_ = alignment_session_.voxel_size_;
     max_correspondence_distance_ =
             alignment_session_.max_correspondence_distance_;
@@ -276,8 +276,8 @@ bool VisualizerForAlignment::LoadSessionFromFile(const std::string &filename) {
 }
 
 bool VisualizerForAlignment::AlignWithManualAnnotation() {
-    const auto &source_idx = source_visualizer_.GetPickedPoints();
-    const auto &target_idx = target_visualizer_.GetPickedPoints();
+    const auto &source_idx = source_visualizer_.GetPickedIndices();
+    const auto &target_idx = target_visualizer_.GetPickedIndices();
     if (source_idx.empty() || target_idx.empty() ||
         source_idx.size() != target_idx.size()) {
         utility::PrintWarning(

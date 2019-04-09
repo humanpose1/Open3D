@@ -25,7 +25,7 @@
 // ----------------------------------------------------------------------------
 
 #include "TransformationEstimation.h"
-
+#include <iostream>
 #include <Eigen/Geometry>
 #include <Open3D/Geometry/PointCloud.h>
 #include <Open3D/Utility/Eigen.h>
@@ -101,7 +101,8 @@ Eigen::Matrix4d TransformationEstimationPointToPlane::ComputeTransformation(
     Eigen::Matrix4d extrinsic;
     std::tie(is_success, extrinsic) =
             utility::SolveJacobianSystemAndObtainExtrinsicMatrix(JTJ, JTr);
-    
+    std::cout << JTJ <<std::endl;
+    std::cout << extrinsic <<std::endl;
     return is_success ? extrinsic : Eigen::Matrix4d::Identity();
 }
 

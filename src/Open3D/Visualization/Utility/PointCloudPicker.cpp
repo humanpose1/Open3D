@@ -32,7 +32,9 @@
 namespace open3d {
 namespace visualization {
 
-void PointCloudPicker::Clear() { picked_indices_.clear(); }
+void PointCloudPicker::Clear() {
+    picked_indices_.clear();
+    picked_points_.clear();}
 
 bool PointCloudPicker::IsEmpty() const {
     return (!pointcloud_ptr_ || picked_indices_.empty());

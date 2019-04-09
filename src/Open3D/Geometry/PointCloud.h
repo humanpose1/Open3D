@@ -217,5 +217,12 @@ std::vector<double> ComputePointCloudMahalanobisDistance(
 std::vector<double> ComputePointCloudNearestNeighborDistance(
         const PointCloud &input);
 
+// Function to sample the normal uniformaly
+    // Divide the sphere wrt theta then pick randomly a box and choose a normal from it
+    std::vector<int> NormalSample(const PointCloud &source,
+			  int num_pt,
+			  double max_angle,
+			  int num_part);
+
 }  // namespace geometry
 }  // namespace open3d

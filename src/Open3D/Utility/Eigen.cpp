@@ -26,7 +26,7 @@
 
 #include "Eigen.h"
 #include <Eigen/Sparse>
-
+#include <iostream>
 #include <Eigen/Geometry>
 #include <Open3D/Utility/Console.h>
 
@@ -86,6 +86,7 @@ std::tuple<bool, Eigen::VectorXd> SolveLinearSystemPSD(
     }
 
     x = A.ldlt().solve(b);
+    std::cout << x <<std::endl;
     return std::make_tuple(true, std::move(x));
 }
 

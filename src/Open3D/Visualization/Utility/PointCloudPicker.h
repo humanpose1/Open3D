@@ -56,6 +56,7 @@ public:
 public:
     std::shared_ptr<const geometry::Geometry> pointcloud_ptr_;
     std::vector<size_t> picked_indices_;
+    std::vector<Eigen::Vector3d> picked_points_;
 };
 
 }  // namespace visualization
