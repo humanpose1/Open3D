@@ -1,0 +1,23 @@
+#pragma once
+
+#include <vector>
+#include <tuple>
+#include <Eigen/Core>
+
+
+#include <Open3D/Utility/Eigen.h>
+
+namespace open3d {
+
+    namespace geometry {
+	class PointCloud;
+    }
+
+    namespace registration {
+
+	// Class that compute the upper bound and lower bound of an error
+	// according to GO ICP : https://arxiv.org/pdf/1605.03344.pdf
+	
+
+    }
+}

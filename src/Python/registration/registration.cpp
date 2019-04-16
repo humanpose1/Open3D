@@ -31,6 +31,7 @@
 #include <Open3D/Registration/CorrespondenceChecker.h>
 #include <Open3D/Registration/TransformationEstimation.h>
 #include <Open3D/Registration/Registration.h>
+#include <Open3D/Registration/Bound.h>
 #include <Open3D/Registration/FastGlobalRegistration.h>
 #include <Open3D/Registration/ColoredICP.h>
 
@@ -362,6 +363,15 @@ void pybind_registration_classes(py::module &m) {
                        std::to_string(rr.correspondence_set_.size()) +
                        std::string("\nAccess transformation to get result.");
             });
+
+    py::class_<registration::ErrorMeasurer> error_measurer(
+            m, "ErrorMeasurer");
+    
+    error_measurer
+	.def(py::init<const geometry::PointCloud &, int>())
+	.def("compute_bound", &registration::ErrorMeasurer::ComputeBound,
+		       "source"_a, "size_rotation_cube"_a, "size_translation_cube"_a);
+    
 }
 
 void pybind_registration_methods(py::module &m) {
@@ -425,3 +435,6 @@ void pybind_registration(py::module &m) {
     pybind_global_optimization(m_submodule);
     pybind_global_optimization_methods(m_submodule);
 }
+
+
+
