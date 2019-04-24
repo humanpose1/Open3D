@@ -370,7 +370,9 @@ void pybind_registration_classes(py::module &m) {
     error_measurer
 	.def(py::init<const geometry::PointCloud &, int>())
 	.def("compute_bound", &registration::ErrorMeasurer::ComputeBound,
-		       "source"_a, "size_rotation_cube"_a, "size_translation_cube"_a);
+		       "source"_a, "size_rotation_cube"_a, "size_translation_cube"_a)
+	.def("distance_field", &registration::ErrorMeasurer::DistanceField,
+	    "source"_a);
     
 }
 

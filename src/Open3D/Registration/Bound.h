@@ -3,6 +3,7 @@
 #include <vector>
 #include <tuple>
 #include <Eigen/Core>
+#include "Feature.h"
 
 #include <Open3D/Geometry/KDTreeFlann.h>
 #include <Open3D/Geometry/PointCloud.h>
@@ -30,9 +31,11 @@ namespace open3d {
 		
 	    ~ErrorMeasurer();
 	public:
-		double ComputeBound(const geometry::PointCloud &source,
-				    double size_rotation_cube,
-				    double size_translation_cube);
+	    double ComputeBound(const geometry::PointCloud &source,
+				double size_rotation_cube,
+				double size_translation_cube);
+
+	    std::shared_ptr<Feature> DistanceField(const geometry::PointCloud &source);
 		    
 		
 	public:
