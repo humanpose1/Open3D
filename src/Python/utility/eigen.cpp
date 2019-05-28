@@ -25,6 +25,8 @@
 // ----------------------------------------------------------------------------
 
 #include "Python/open3d_pybind.h"
+#include "Open3D/Utility/Eigen.h"
+#include "Python/utility/utility.h"
 
 namespace pybind11 {
 
@@ -241,4 +243,10 @@ void pybind_eigen(py::module &m) {
             py::py_array_to_vectors_int<Eigen::Vector2i>);
     pybind_eigen_vector_of_matrix<Eigen::Matrix4d>(
             m, "Matrix4dVector", "std::vector<Eigen::Matrix4d>");
+
+    // Simple method of resolution
+}
+
+void pybind_eigen_func(py::module &m) {
+    m.def("solver_svd", open3d::utility::SolveLinearSystemSVD);
 }

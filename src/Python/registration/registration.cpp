@@ -372,7 +372,10 @@ void pybind_registration_classes(py::module &m) {
 	.def("compute_bound", &registration::ErrorMeasurer::ComputeBound,
 		       "source"_a, "size_rotation_cube"_a, "size_translation_cube"_a)
 	.def("distance_field", &registration::ErrorMeasurer::DistanceField,
-	    "source"_a);
+	    "source"_a)
+	.def("get_correspondence", &registration::ErrorMeasurer::GetCorrespondence,
+	     "source"_a, "max_correspondence_distance"_a,
+	     "keep"_a, "new_source"_a, "output"_a);
     
 }
 

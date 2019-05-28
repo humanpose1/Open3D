@@ -36,6 +36,12 @@ namespace open3d {
 				double size_translation_cube);
 
 	    std::shared_ptr<Feature> DistanceField(const geometry::PointCloud &source);
+
+	    double GetCorrespondence(const geometry::PointCloud &source,
+				     double max_correspondance_distance,
+				     double keep,
+				     geometry::PointCloud &new_source,
+				     geometry::PointCloud &output);
 		    
 		
 	public:

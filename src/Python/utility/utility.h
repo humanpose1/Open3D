@@ -29,6 +29,7 @@
 #include "Python/open3d_pybind.h"
 
 void pybind_utility(py::module &m);
-
 void pybind_console(py::module &m);
 void pybind_eigen(py::module &m);
+//void pybind_solver(py::module &m);
+void pybind_eigen_func(py::module &m);

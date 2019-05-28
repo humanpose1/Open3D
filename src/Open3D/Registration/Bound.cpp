@@ -93,5 +93,60 @@ namespace open3d{
 	    }
 	    return feature;
 	}
+
+	double ErrorMeasurer::GetCorrespondence(const geometry::PointCloud &source,
+						double max_correspondence_distance,
+						double keep,
+						geometry::PointCloud &new_source,
+						geometry::PointCloud &output){
+	    
+	    bool has_normals = source.HasNormals();
+	    bool has_colors = source.HasColors();
+	    std::vector<int> list_index(source.points_.size());
+	    std::vector<double> list_dists(source.points_.size());
+#ifdef _OPENMP
+#pragma omp parallel for schedule(static)
+#endif
+	    for (int i = 0; i < (int)source.points_.size(); i++) {
+		std::vector<int> indices(1);
+		std::vector<double> dists(1);
+		const auto &point = source.points_[i];
+		if (tree_.SearchHybrid(point, max_correspondence_distance,
+				       1, indices, dists) > 0) {
+		    
+		    list_index[i] = indices[0];
+		    list_dists[i] = dists[0];
+		}
+	    }
+	    double res = 0.0;
+	    double thresh = 0.0;
+	    std::vector<double> copy(list_dists);
+	    std::sort(copy.begin(), copy.end());
+	    if(keep < 1){
+	        
+		double ind = keep*(double)source.points_.size();
+		if(ind < 10) ind = 10.0; // to have at least 10 points
+		thresh = copy[(int)ind];
+	    }
+	    else
+		thresh = copy[source.points_.size()-1];
+	    for (int i = 0; i < (int)source.points_.size(); i++) {
+		if(list_dists[i] < thresh){
+		    res += list_dists[i];
+		    output.points_.push_back(target_.points_[list_index[i]]);
+		    new_source.points_.push_back(source.points_[i]);
+		    if (has_normals) {
+			output.normals_.push_back(target_.normals_[list_index[i]]);
+			new_source.normals_.push_back(source.normals_[i]);
+		    }
+		    if (has_colors) {
+			output.colors_.push_back(target_.colors_[list_index[i]]);
+			new_source.colors_.push_back(source.colors_[i]);
+		    }
+		}
+	    }
+	    return res;
+	}
+	    
     } // namespace registration 
 } // namespace open3d

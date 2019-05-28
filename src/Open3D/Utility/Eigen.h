@@ -74,7 +74,8 @@ std::tuple<bool, Eigen::VectorXd> SolveLinearSystemPSD(
         bool check_symmetric = false,
         bool check_det = false,
         bool check_psd = false);
-
+///Function to minimize ||Jx-y||^2 using SVD
+    Eigen::VectorXd SolveLinearSystemSVD(const Eigen::MatrixXd &J, const Eigen::VectorXd &b);
 /// Function to solve Jacobian system
 /// Input: 6x6 Jacobian matrix and 6-dim residual vector.
 /// Output: tuple of is_success, 4x4 extrinsic matrices.

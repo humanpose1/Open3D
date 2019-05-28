@@ -89,6 +89,12 @@ std::tuple<bool, Eigen::VectorXd> SolveLinearSystemPSD(
     std::cout << x <<std::endl;
     return std::make_tuple(true, std::move(x));
 }
+    // solver that use the svd
+    Eigen::VectorXd SolveLinearSystemSVD(const Eigen::MatrixXd &J, const Eigen::VectorXd &b){
+	Eigen::VectorXd x(J.cols());
+	x = J.bdcSvd(Eigen::ComputeThinU | Eigen::ComputeThinV).solve(b);
+	return x;
+    }
 
 Eigen::Matrix4d TransformVector6dToMatrix4d(const Eigen::Vector6d &input) {
     Eigen::Matrix4d output;
